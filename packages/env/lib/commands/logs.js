@@ -28,9 +28,7 @@ module.exports = async function logs( { environment, watch, spinner, debug } ) {
 	}
 
 	const servicesToWatch =
-		environment === 'all'
-			? [ 'tests-wordpress', 'wordpress' ]
-			: [ environment === 'tests' ? 'tests-wordpress' : 'wordpress' ];
+		environment === 'all' ? [ 'wordpress' ] : [ 'wordpress' ];
 
 	const output = await Promise.all( [
 		...servicesToWatch.map( ( service ) =>

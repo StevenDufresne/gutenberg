@@ -73,15 +73,19 @@ async function configureWordPress( environment, config, spinner ) {
 		);
 	}
 
-	// Execute all setup commands in a batch.
-	await dockerCompose.run(
-		environment === 'development' ? 'cli' : 'tests-cli',
-		[ 'bash', '-c', setupCommands.join( ' && ' ) ],
-		{
-			config: config.dockerComposeConfigPath,
-			log: config.debug,
-		}
-	);
+	try {
+		// Execute all setup commands in a batch.
+		await dockerCompose.run(
+			environment === 'cli',
+			[ 'bash', '-c', setupCommands.join( ' && ' ) ],
+			{
+				config: config.dockerComposeConfigPath,
+				log: config.debug,
+			}
+		);
+	} catch ( ex ) {
+		console.log( ex );
+	}
 
 	/**
 	 * Since wp-phpunit loads wp-settings.php at the end of its wp-config.php
@@ -96,18 +100,18 @@ async function configureWordPress( environment, config, spinner ) {
 	 * This will be removed in the future. @see https://github.com/WordPress/gutenberg/issues/23171
 	 *
 	 */
-	await dockerCompose.exec(
-		environment === 'development' ? 'wordpress' : 'tests-wordpress',
-		[
-			'sh',
-			'-c',
-			'sed "/^require.*wp-settings.php/d" /var/www/html/wp-config.php > /var/www/html/phpunit-wp-config.php && chmod 777 /var/www/html/phpunit-wp-config.php',
-		],
-		{
-			config: config.dockerComposeConfigPath,
-			log: config.debug,
-		}
-	);
+	// await dockerCompose.exec(
+	// 	'wordpress',
+	// 	[
+	// 		'sh',
+	// 		'-c',
+	// 		'sed "/^require.*wp-settings.php/d" /var/www/html/wp-config.php > /var/www/html/phpunit-wp-config.php && chmod 777 /var/www/html/phpunit-wp-config.php',
+	// 	],
+	// 	{
+	// 		config: config.dockerComposeConfigPath,
+	// 		log: config.debug,
+	// 	}
+	// );
 }
 
 /**
@@ -133,9 +137,9 @@ async function resetDatabase(
 	}
 
 	if ( environment === 'all' || environment === 'tests' ) {
-		tasks.push(
-			dockerCompose.run( 'tests-cli', 'wp db reset --yes', options )
-		);
+		// tasks.push(
+		// 	dockerCompose.run( 'tests-cli', 'wp db reset --yes', options )
+		// );
 	}
 
 	await Promise.all( tasks );

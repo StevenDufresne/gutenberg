@@ -99,7 +99,7 @@ module.exports = async function start( { spinner, debug, update, xdebug } ) {
 		// as docker volumes, simply updating the image will not change those
 		// files. Thus, we need to remove those volumes in order for the files
 		// to be updated when pulling the new images.
-		const volumesToRemove = `${ directoryHash }_wordpress ${ directoryHash }_tests-wordpress`;
+		const volumesToRemove = `${ directoryHash }_wordpress`;
 
 		try {
 			if ( config.debug ) {
@@ -132,7 +132,7 @@ module.exports = async function start( { spinner, debug, update, xdebug } ) {
 
 	spinner.text = 'Starting WordPress.';
 
-	await dockerCompose.upMany( [ 'wordpress', 'tests-wordpress' ], {
+	await dockerCompose.upMany( [ 'wordpress' ], {
 		...dockerComposeConfig,
 		commandOptions: shouldConfigureWp
 			? [ '--build', '--force-recreate' ]
@@ -156,24 +156,30 @@ module.exports = async function start( { spinner, debug, update, xdebug } ) {
 			await sleep( 4000 );
 		}
 
+		delete config.env.tests;
+
+		spinner.text = 'Before the promise';
+
 		// Retry WordPress installation in case MySQL *still* wasn't ready.
 		await Promise.all( [
 			retry( () => configureWordPress( 'development', config, spinner ), {
 				times: 2,
 			} ),
-			retry( () => configureWordPress( 'tests', config, spinner ), {
-				times: 2,
-			} ),
+			// retry( () => configureWordPress( 'tests', config, spinner ), {
+			// 	times: 2,
+			// } ),
 		] );
 
 		// Set the cache key once everything has been configured.
-		await setCache( CONFIG_CACHE_KEY, configHash, {
-			workDirectoryPath,
-		} );
+		// await setCache( CONFIG_CACHE_KEY, configHash, {
+		// 	workDirectoryPath,
+		// } );
 	}
 
+	spinner.text = 'Below cache';
+
 	const siteUrl = config.env.development.config.WP_SITEURL;
-	const e2eSiteUrl = config.env.tests.config.WP_TESTS_DOMAIN;
+	//const e2eSiteUrl = config.env.tests.config.WP_TESTS_DOMAIN;
 	const { out: mySQLAddress } = await dockerCompose.port(
 		'mysql',
 		3306,
@@ -185,7 +191,7 @@ module.exports = async function start( { spinner, debug, update, xdebug } ) {
 		.concat( siteUrl ? ` at ${ siteUrl }` : '.' )
 		.concat( '\n' )
 		.concat( 'WordPress test site started' )
-		.concat( e2eSiteUrl ? ` at ${ e2eSiteUrl }` : '.' )
+
 		.concat( '\n' )
 		.concat( `MySQL is listening on port ${ mySQLPort }` )
 		.concat( '\n' );
@@ -201,10 +207,7 @@ module.exports = async function start( { spinner, debug, update, xdebug } ) {
  */
 async function checkForLegacyInstall( spinner ) {
 	const basename = path.basename( process.cwd() );
-	const installs = [
-		`../${ basename }-wordpress`,
-		`../${ basename }-tests-wordpress`,
-	];
+	const installs = [ `../${ basename }-wordpress` ];
 	await Promise.all(
 		installs.map( ( install ) =>
 			fs
