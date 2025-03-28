@@ -76,8 +76,10 @@ export default function DataViews< Item >( {
 	isItemClickable = defaultIsItemClickable,
 	header,
 }: DataViewsProps< Item > ) {
-	console.log( 'Rendered <DataViews>')
-	const [ containerWidth, setContainerWidth ] = useState( undefined );
+	console.log( 'Rendered <DataViews>');
+	const [ containerWidth, setContainerWidth ] = useState<
+		number | undefined
+	>( undefined );
 	const containerRef = useResizeObserver(
 		( resizeObserverEntries: any ) => {
 			setContainerWidth(
