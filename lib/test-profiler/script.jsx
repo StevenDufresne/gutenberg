@@ -1,5 +1,4 @@
 // src/Example.jsx
-import { Button, Icon } from '@wordpress/components';
 import { DataViews } from '../../packages/dataviews';
 import { edit } from '@wordpress/icons';
 import React, { Profiler } from 'react';
@@ -65,7 +64,7 @@ const onRender = (
 	});
 };
 
-const data = generateFakeData( 1000 );
+const data = generateFakeData( 50 );
 
 const Example = () => {
 
