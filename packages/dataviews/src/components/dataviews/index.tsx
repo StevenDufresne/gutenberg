@@ -76,7 +76,10 @@ export default function DataViews< Item >( {
 	isItemClickable = defaultIsItemClickable,
 	header,
 }: DataViewsProps< Item > ) {
-	const [ containerWidth, setContainerWidth ] = useState( 0 );
+	console.log( 'Rendered <DataViews>');
+	const [ containerWidth, setContainerWidth ] = useState<
+		number | undefined
+	>( undefined );
 	const containerRef = useResizeObserver(
 		( resizeObserverEntries: any ) => {
 			setContainerWidth(
@@ -167,7 +170,7 @@ export default function DataViews< Item >( {
 					</HStack>
 				</HStack>
 				{ isShowingFilter && <DataViewsFilters /> }
-				<DataViewsLayout />
+				{ containerWidth === undefined ? '' : <DataViewsLayout /> }
 				<DataViewsFooter />
 			</div>
 		</DataViewsContext.Provider>

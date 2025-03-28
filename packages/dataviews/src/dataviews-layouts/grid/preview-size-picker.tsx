@@ -36,7 +36,7 @@ const BREAKPOINTS = {
 function useViewPortBreakpoint() {
 	const containerWidth = useContext( DataViewsContext ).containerWidth;
 	for ( const [ key, value ] of Object.entries( BREAKPOINTS ) ) {
-		if ( containerWidth >= value ) {
+		if ( containerWidth !== undefined && containerWidth >= value ) {
 			return key;
 		}
 	}
