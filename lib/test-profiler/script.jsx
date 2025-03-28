@@ -12,8 +12,6 @@ const __ = ( text, domain ) => {
 };
 // --- End Mock ---
 
-
-console.log('ok')
 const generateFakeData = ( count ) => {
 	const statuses = [
 		'draft',
@@ -32,7 +30,7 @@ const generateFakeData = ( count ) => {
 	} ) );
 };
 
-// Your onRender callback for the Profiler
+
 const onRender = (
 	id,
 	phase,
@@ -41,50 +39,37 @@ const onRender = (
 	startTime,
 	commitTime
 ) => {
-	console.log( {
-		id, // the "id" prop of the Profiler tree that has just committed
-		phase, // "mount" (if the tree just mounted) or "update" (if it re-rendered)
-		actualDuration, // time spent rendering the committed update
-		baseDuration, // estimated time to render the entire subtree without memoization
-		startTime, // when React began rendering this update
-		commitTime, // when React committed this update
-		// interactions // Set of interactions belonging to this update
-	} );
+	// Track cumulative render times
+	window.renderMetrics = window.renderMetrics || {
+		totalRenderTime: 0,
+		renderCount: 0
+	};
+
+	window.renderMetrics.totalRenderTime += actualDuration;
+	window.renderMetrics.renderCount++;
+
+	// Calculate average render time
+	const averageRenderTime = 
+		window.renderMetrics.totalRenderTime / window.renderMetrics.renderCount;
+
+	console.log('Render Metrics:', {
+		id,
+		phase,
+		actualDuration,
+		baseDuration,
+		startTime,
+		commitTime,
+		averageRenderTime,
+		totalRenderDuration: window.renderMetrics.totalRenderTime,
+		totalRenderCount: window.renderMetrics.renderCount
+	});
 };
 
-const data = generateFakeData( 1000 ); // Using 1000 items as per your example
+const data = generateFakeData( 1000 );
 
 const Example = () => {
-	// State for view - important for DataViews to be interactive
-	const [ view, setView ] = React.useState( {
-		type: 'table',
-		search: '',
-		filters: [],
-		page: 1,
-		perPage: 1000, // Increased perPage slightly
-		sort: {
-			field: 'date',
-			direction: 'desc',
-		},
-		fields: [ 'author', 'status' ],
-		// No need for titleField here, it's inferred or set in fields
-		// titleField: "title",
-		// Removed layout: {}, use defaultLayouts instead if needed for specific view types
-	} );
 
-	// State for pagination - This should update based on view changes
-	const [ paginationInfo, setPaginationInfo ] = React.useState( {
-		totalItems: data.length, // Use totalItems standardly
-		totalPages: Math.ceil( data.length / view.perPage ),
-	} );
-
-	// Update pagination when view (especially perPage) changes
-	React.useEffect( () => {
-		setPaginationInfo( ( prev ) => ( {
-			...prev,
-			totalPages: Math.ceil( data.length / view.perPage ),
-		} ) );
-	}, [ view.perPage ] );
+	console.log('Rendering <Example />');
 
 	const STATUSES = [
 		{ value: 'draft', label: __( 'Draft' ) },
@@ -144,13 +129,6 @@ const Example = () => {
 		},
 	];
 
-	// Callback when view state changes (sorting, filtering, pagination)
-	const onChangeView = ( newView ) => {
-		console.log( 'View changing:', newView );
-		// You MUST update the state for the component to react
-		setView( newView );
-	};
-
 	const actions = [
 		{
 			id: 'edit',
@@ -161,6 +139,27 @@ const Example = () => {
 			isEligible: () => true,
 		},
 	];
+
+	const view = {
+		type: 'table',
+		search: '',
+		filters: [],
+		page: 1,
+		perPage: 1000, // Increased perPage slightly
+		sort: {
+			field: 'date',
+			direction: 'desc',
+		},
+		fields: [ 'title', 'author', 'status' ],
+		// No need for titleField here, it's inferred or set in fields
+		// titleField: "title",
+		// Removed layout: {}, use defaultLayouts instead if needed for specific view types
+	} 
+
+	const paginationInfo = {
+		totalItems: data.length,
+		totalPages: Math.ceil( data.length / view.perPage ),
+	};
 
 	// Data might need pagination/sorting/filtering applied *before* passing
 	// For simplicity here, DataViews might handle some of this internally based on `view` prop,
@@ -182,7 +181,6 @@ const Example = () => {
 					data={ paginatedData } // Pass potentially filtered/sorted/paginated data
 					fields={ fields }
 					view={ view } // Pass the state variable
-					onChangeView={ onChangeView } // Pass the state setter callback
 					actions={ actions }
 					paginationInfo={ paginationInfo } // Pass pagination state
 					// onSelectionChange={(selectedItems) => console.log('Selection:', selectedItems)} // Optional: handle selection
