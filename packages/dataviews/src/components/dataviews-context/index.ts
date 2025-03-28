@@ -29,7 +29,7 @@ type DataViewsContextType< Item > = {
 	getItemLevel?: ( item: Item ) => number;
 	onClickItem?: ( item: Item ) => void;
 	isItemClickable: ( item: Item ) => boolean;
-	containerWidth: number;
+	containerWidth: number | undefined;
 };
 
 const DataViewsContext = createContext< DataViewsContextType< any > >( {
